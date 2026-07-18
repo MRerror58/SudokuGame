@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.example.sudokugame.SudokuController"
+            prefWidth="420" prefHeight="540">
+    <top>
+        <VBox alignment="CENTER" spacing="5">
+            <padding>
+                <Insets top="10" right="10" bottom="10" left="10"/>
+            </padding>
+            <Label text="Sudoku 6x6 (bloques 2x3)" style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
+            <Label fx:id="statusLabel" text=""/>
+        </VBox>
+    </top>
+    <center>
+        <StackPane fx:id="boardContainer" alignment="CENTER">
+            <GridPane fx:id="boardGrid" hgap="0" vgap="0" alignment="CENTER"/>
+        </StackPane>
+    </center>
+    <bottom>
+        <HBox alignment="CENTER" spacing="10">
+            <padding>
+                <Insets top="10" right="10" bottom="10" left="10"/>
+            </padding>
+            <Button fx:id="newGameButton" text="Nuevo juego" prefWidth="120"/>
+            <Button fx:id="helpButton" text="Ayuda" prefWidth="120"/>
+            <Button fx:id="clearButton" text="Borrar celda" prefWidth="120"/>
+        </HBox>
+    </bottom>
+</BorderPane>

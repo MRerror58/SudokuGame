@@ -1,0 +1,25 @@
+.sudoku-cell {
+    -fx-background-color: white;
+    -fx-border-color: #888;
+    -fx-border-width: 0.5;
+    -fx-text-fill: black;
+}
+
+.sudoku-cell.fixed {
+    -fx-background-color: #e0e0e0;
+    -fx-font-weight: bold;
+}
+
+.sudoku-cell.user {
+    -fx-text-fill: #1a4fbf;
+}
+
+.sudoku-cell.error {
+    -fx-text-fill: #c00000;
+    -fx-background-color: #ffd6d6;
+}
+
+.sudoku-cell.selected {
+    -fx-border-color: #1a73e8;
+    -fx-border-width: 2;
+}
