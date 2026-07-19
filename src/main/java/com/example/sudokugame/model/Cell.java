@@ -1,24 +1,24 @@
-package com.example.sudokugame;
+package com.example.sudokugame.model;
 
 /**
- * Representa una celda individual del tablero de Sudoku 6x6.
- * Cada celda almacena un valor numerico entre 1 y 6 (o 0 si esta vacia)
- * y mantiene informacion sobre si el valor fue colocado inicialmente
- * o si fue introducido por el usuario.
+ * Represents an individual cell of the 6x6 Sudoku board.
+ * Each cell stores a numeric value between 1 and 6 (or 0 if empty)
+ * and keeps track of whether the value was placed initially
+ * or entered by the user.
  */
 public class Cell {
 
-    /** Valor actual de la celda. 0 indica celda vacia. */
+    /** Current value of the cell. 0 indicates an empty cell. */
     private int value;
 
-    /** Indica si la celda es un valor fijo del tablero inicial. */
+    /** Indicates whether the cell is a fixed value from the initial board. */
     private final boolean fixed;
 
     /**
-     * Construye una celda con un valor y un estado de fijeza.
+     * Builds a cell with a value and a fixed state.
      *
-     * @param value valor inicial (0 si esta vacia).
-     * @param fixed true si la celda pertenece al tablero inicial.
+     * @param value initial value (0 if empty).
+     * @param fixed true if the cell belongs to the initial board.
      */
     public Cell(int value, boolean fixed) {
         this.value = value;
@@ -26,36 +26,36 @@ public class Cell {
     }
 
     /**
-     * Obtiene el valor actual de la celda.
+     * Gets the current value of the cell.
      *
-     * @return el valor almacenado (0 si esta vacia).
+     * @return the stored value (0 if empty).
      */
     public int getValue() {
         return value;
     }
 
     /**
-     * Establece un nuevo valor para la celda.
+     * Sets a new value for the cell.
      *
-     * @param value nuevo valor (0 a 6).
+     * @param value new value (0 to 6). 0 represents an empty cell.
      */
     public void setValue(int value) {
         this.value = value;
     }
 
     /**
-     * Indica si la celda es un valor fijo del tablero inicial.
+     * Indicates whether the cell is a fixed value from the initial board.
      *
-     * @return true si el usuario no puede modificar esta celda.
+     * @return true if the user cannot modify this cell.
      */
     public boolean isFixed() {
         return fixed;
     }
 
     /**
-     * Indica si la celda esta vacia.
+     * Indicates whether the cell is empty.
      *
-     * @return true si el valor es 0.
+     * @return true if the value is 0.
      */
     public boolean isEmpty() {
         return value == 0;

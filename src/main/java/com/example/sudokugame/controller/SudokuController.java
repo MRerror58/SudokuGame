@@ -2,9 +2,6 @@ package com.example.sudokugame.controller;
 
 import com.example.sudokugame.model.Cell;
 import com.example.sudokugame.model.SudokuBoard;
-
-import javafx.animation.ScaleTransition;
-import javafx.animation.TranslateTransition;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
@@ -20,57 +17,38 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
-import javafx.scene.shape.Rectangle;
-import javafx.scene.shape.StrokeLineCap;
-import javafx.scene.shape.StrokeType;
 import javafx.scene.text.Font;
-import javafx.scene.text.FontWeight;
-import javafx.util.Duration;
 
 import java.util.Optional;
 
 /**
- * Controller for the Sudoku view.
+ * Controlador de la vista del Sudoku.
  *
- * Implements the {@link SudokuModelAdapter} interface to act as an
- * adapter between the view (FXML) and the model ({@link SudokuBoard}),
- * following the MVC architecture.
+ * Implementa la interfaz {@link SudokuModelAdapter} para actuar como
+ * adaptador entre la vista (FXML) y el modelo ({@link SudokuBoard}),
+ * siguiendo la arquitectura MVC.
  *
- * Responsible for:
+ * Se encarga de:
  * <ul>
- *   <li>Building the 6x6 grid from the model.</li>
- *   <li>Handling mouse events (cell selection) and
- *       keyboard events (entering numbers 1 to 6 or deleting).</li>
- *   <li>Validating and highlighting incorrect numbers in red, with a
- *       "shake" animation that indicates exactly where the error
- *       occurred, and a color pulse when correct.</li>
- *   <li>Controlling the help button and game restarts.</li>
+ *   <li>Construir la cuadricula 6x6 a partir del modelo.</li>
+ *   <li>Gestionar los eventos de mouse (seleccion de celda) y
+ *       teclado (escritura de numeros del 1 al 6 o borrado).</li>
+ *   <li>Validar y resaltar en rojo los numeros incorrectos.</li>
+ *   <li>Controlar el boton de ayuda y los reinicios de partida.</li>
  * </ul>
  */
 public class SudokuController implements SudokuModelAdapter {
 
-    /** Size in pixels of each board cell. */
-    private static final double CELL_SIZE = 82;
-
-    /** Soft color used for the divider lines of the 2x3 blocks. */
-    private static final Color GRID_LINE_COLOR = Color.web("#4A4A68");
-
-    /** Thickness of the block divider lines. */
-    private static final double GRID_LINE_WIDTH = 3.5;
-
-    /** Corner radius of the board's outer border. */
-    private static final double BOARD_CORNER_RADIUS = 26;
-
-    /** Game model. */
+    /** Modelo del juego. */
     private final SudokuBoard board;
 
-    /** Matrix of text fields representing the cells. */
+    /** Matriz de campos de texto que representan las celdas. */
     private final TextField[][] cells;
 
-    /** Currently selected row. */
+    /** Fila actualmente seleccionada. */
     private int selectedRow = -1;
 
-    /** Currently selected column. */
+    /** Columna actualmente seleccionada. */
     private int selectedCol = -1;
 
     @FXML
@@ -83,9 +61,6 @@ public class SudokuController implements SudokuModelAdapter {
     private Label statusLabel;
 
     @FXML
-    private Label feedbackLabel;
-
-    @FXML
     private Button newGameButton;
 
     @FXML
@@ -95,7 +70,7 @@ public class SudokuController implements SudokuModelAdapter {
     private Button clearButton;
 
     /**
-     * Builds a controller and prepares the internal structures.
+     * Construye un controlador y prepara las estructuras internas.
      */
     public SudokuController() {
         this.board = new SudokuBoard();
@@ -103,9 +78,9 @@ public class SudokuController implements SudokuModelAdapter {
     }
 
     /**
-     * Initialization method called by JavaFX when the FXML is loaded.
-     * Builds the visual grid, wires up the event handlers,
-     * and starts a new game.
+     * Metodo de inicializacion llamado por JavaFX al cargar el FXML.
+     * Construye la cuadricula visual, conecta los manejadores de
+     * eventos y arranca un juego nuevo.
      */
     @FXML
     public void initialize() {
@@ -118,8 +93,8 @@ public class SudokuController implements SudokuModelAdapter {
     }
 
     /**
-     * Builds the 6x6 grid of text fields and visually divides
-     * it into 2x3 blocks using thick lines.
+     * Construye la cuadricula 6x6 de campos de texto y la divide
+     * visualmente en bloques 2x3 mediante lineas gruesas.
      */
     private void buildBoard() {
         boardGrid.getChildren().clear();
@@ -128,7 +103,7 @@ public class SudokuController implements SudokuModelAdapter {
         boardGrid.setPadding(Insets.EMPTY);
         boardGrid.setAlignment(Pos.CENTER);
 
-        double cellSize = CELL_SIZE;
+        double cellSize = 64;
         double totalSize = cellSize * SudokuBoard.SIZE;
 
         for (int r = 0; r < SudokuBoard.SIZE; r++) {
@@ -138,7 +113,7 @@ public class SudokuController implements SudokuModelAdapter {
                 tf.setMaxSize(cellSize, cellSize);
                 tf.setMinSize(cellSize, cellSize);
                 tf.setAlignment(Pos.CENTER);
-                tf.setFont(Font.font("Verdana", FontWeight.BOLD, 26));
+                tf.setFont(Font.font("Monospaced", 22));
                 tf.setEditable(false);
                 tf.getStyleClass().add("sudoku-cell");
 
@@ -150,48 +125,43 @@ public class SudokuController implements SudokuModelAdapter {
             }
         }
 
-        // Canvas that draws the thick borders of the 2x3 blocks.
-        // Added to the same StackPane and positioned at (0,0) so
-        // its coordinates line up exactly with the cells.
+        // Lienzo que dibuja los bordes gruesos de los bloques 2x3.
+        // Se añade al mismo StackPane y se posiciona en (0,0) para
+        // que sus coordenadas coincidan exactamente con las celdas.
         Pane overlay = new Pane();
         overlay.setMouseTransparent(true);
         overlay.setPrefSize(totalSize, totalSize);
         overlay.setMaxSize(totalSize, totalSize);
         overlay.setMinSize(totalSize, totalSize);
 
-        // The inner dividers of the 2x3 blocks are shortened slightly and
-        // use rounded caps so they don't end at right angles
-        // against the curved outer border.
-        double lineInset = GRID_LINE_WIDTH / 2.0;
         for (int i = 1; i < SudokuBoard.SIZE; i++) {
+            boolean thickBox = (i % SudokuBoard.BOX_COLS == 0)
+                    || (i % SudokuBoard.BOX_ROWS == 0);
             if (i % SudokuBoard.BOX_COLS == 0) {
-                Line v = new Line(i * cellSize, lineInset, i * cellSize, totalSize - lineInset);
-                v.setStrokeWidth(GRID_LINE_WIDTH);
-                v.setStroke(GRID_LINE_COLOR);
-                v.setStrokeLineCap(StrokeLineCap.ROUND);
+                Line v = new Line(i * cellSize, 0, i * cellSize, totalSize);
+                v.setStrokeWidth(thickBox ? 3 : 1);
+                v.setStroke(Color.BLACK);
                 overlay.getChildren().add(v);
             }
             if (i % SudokuBoard.BOX_ROWS == 0) {
-                Line h = new Line(lineInset, i * cellSize, totalSize - lineInset, i * cellSize);
-                h.setStrokeWidth(GRID_LINE_WIDTH);
-                h.setStroke(GRID_LINE_COLOR);
-                h.setStrokeLineCap(StrokeLineCap.ROUND);
+                Line h = new Line(0, i * cellSize, totalSize, i * cellSize);
+                h.setStrokeWidth(thickBox ? 3 : 1);
+                h.setStroke(Color.BLACK);
                 overlay.getChildren().add(h);
             }
         }
+        // Borde exterior.
+        Line leftLine = new Line(0, 0, 0, totalSize);
+        leftLine.setStrokeWidth(3);
+        Line rightLine = new Line(totalSize, 0, totalSize, totalSize);
+        rightLine.setStrokeWidth(3);
+        Line topLine = new Line(0, 0, totalSize, 0);
+        topLine.setStrokeWidth(3);
+        Line bottomLine = new Line(0, totalSize, totalSize, totalSize);
+        bottomLine.setStrokeWidth(3);
+        overlay.getChildren().addAll(leftLine, rightLine, topLine, bottomLine);
 
-        // Outer border with rounded corners, instead of a straight
-        // rectangle, to match the rest of the pastel aesthetic.
-        Rectangle outerBorder = new Rectangle(0, 0, totalSize, totalSize);
-        outerBorder.setFill(Color.TRANSPARENT);
-        outerBorder.setStroke(GRID_LINE_COLOR);
-        outerBorder.setStrokeWidth(GRID_LINE_WIDTH);
-        outerBorder.setStrokeType(StrokeType.INSIDE);
-        outerBorder.setArcWidth(BOARD_CORNER_RADIUS * 2);
-        outerBorder.setArcHeight(BOARD_CORNER_RADIUS * 2);
-        overlay.getChildren().add(outerBorder);
-
-        // Captures keys at the grid level, globally.
+        // Captura teclas a nivel global de la cuadricula.
         EventHandler<KeyEvent> keyHandler = this::handleKey;
         for (int r = 0; r < SudokuBoard.SIZE; r++) {
             for (int c = 0; c < SudokuBoard.SIZE; c++) {
@@ -199,34 +169,20 @@ public class SudokuController implements SudokuModelAdapter {
             }
         }
 
-        // Place the grid and overlay together in a panel of the same size
-        // so their coordinates match, and clip that panel with a
-        // rounded-corner rectangle: this way the cells in the four
-        // corners also follow the curved outline instead of having their
-        // straight corners poke out past the border.
+        // Colocar cuadricula y overlay en el StackPane con el mismo tamano
+        // para que las coordenadas coincidan.
+        boardContainer.getChildren().clear();
         boardGrid.setPrefSize(totalSize, totalSize);
         boardGrid.setMaxSize(totalSize, totalSize);
         boardGrid.setMinSize(totalSize, totalSize);
-
-        javafx.scene.layout.StackPane gridArea = new javafx.scene.layout.StackPane(boardGrid, overlay);
-        gridArea.setPrefSize(totalSize, totalSize);
-        gridArea.setMaxSize(totalSize, totalSize);
-        gridArea.setMinSize(totalSize, totalSize);
-
-        Rectangle clip = new Rectangle(totalSize, totalSize);
-        clip.setArcWidth(BOARD_CORNER_RADIUS * 2);
-        clip.setArcHeight(BOARD_CORNER_RADIUS * 2);
-        gridArea.setClip(clip);
-
-        boardContainer.getChildren().clear();
-        boardContainer.getChildren().add(gridArea);
+        boardContainer.getChildren().addAll(boardGrid, overlay);
     }
 
     /**
-     * Keyboard handler. Only responds if a cell is selected.
-     * Accepts numbers 1 to 6 and deletion with Backspace or Delete.
+     * Manejador de teclado. Solo responde si hay una celda seleccionada.
+     * Acepta numeros del 1 al 6 y borrado con Backspace o Delete.
      *
-     * @param event keyboard event.
+     * @param event evento de teclado.
      */
     private void handleKey(KeyEvent event) {
         if (selectedRow < 0 || selectedCol < 0) {
@@ -250,10 +206,10 @@ public class SudokuController implements SudokuModelAdapter {
     }
 
     /**
-     * Selects a cell and visually marks it.
+     * Selecciona una celda y la marca visualmente.
      *
-     * @param row selected row.
-     * @param col selected column.
+     * @param row fila seleccionada.
+     * @param col columna seleccionada.
      */
     private void selectCell(int row, int col) {
         if (row < 0 || row >= SudokuBoard.SIZE || col < 0 || col >= SudokuBoard.SIZE) {
@@ -266,11 +222,10 @@ public class SudokuController implements SudokuModelAdapter {
         selectedCol = col;
         cells[row][col].getStyleClass().add("selected");
         cells[row][col].requestFocus();
-        clearFeedback();
     }
 
     /**
-     * Refreshes all the view's cells from the model.
+     * Actualiza todas las celdas de la vista a partir del modelo.
      */
     private void refreshAll() {
         for (int r = 0; r < SudokuBoard.SIZE; r++) {
@@ -282,11 +237,11 @@ public class SudokuController implements SudokuModelAdapter {
     }
 
     /**
-     * Visually refreshes an individual cell: text, color, and
-     * state (fixed, editable, error).
+     * Actualiza visualmente una celda individual: texto, color y
+     * estado (fija, editable, error).
      *
-     * @param row row.
-     * @param col column.
+     * @param row fila.
+     * @param col columna.
      */
     private void refreshCell(int row, int col) {
         Cell cell = board.getCell(row, col);
@@ -308,8 +263,8 @@ public class SudokuController implements SudokuModelAdapter {
     }
 
     /**
-     * Updates the status label and the availability of the help
-     * button based on the game state.
+     * Actualiza la etiqueta de estado y la disponibilidad del boton
+     * de ayuda segun el estado del juego.
      */
     private void updateStatus() {
         if (board.isSolved()) {
@@ -323,60 +278,7 @@ public class SudokuController implements SudokuModelAdapter {
     }
 
     /**
-     * Shows a feedback message next to the board, with a different
-     * color depending on the type (error, success, or info).
-     *
-     * @param message text to display.
-     * @param styleClass one of "feedback-error", "feedback-success", or "feedback-info".
-     */
-    private void showFeedback(String message, String styleClass) {
-        feedbackLabel.getStyleClass().removeAll("feedback-error", "feedback-success", "feedback-info");
-        feedbackLabel.getStyleClass().add(styleClass);
-        feedbackLabel.setText(message);
-    }
-
-    /**
-     * Clears the feedback message.
-     */
-    private void clearFeedback() {
-        feedbackLabel.getStyleClass().removeAll("feedback-error", "feedback-success", "feedback-info");
-        feedbackLabel.setText("");
-    }
-
-    /**
-     * Plays a brief "shake" animation on a cell to visually indicate,
-     * in addition to the red color, where an input error occurred.
-     *
-     * @param tf text field of the cell to shake.
-     */
-    private void shakeCell(TextField tf) {
-        TranslateTransition shake = new TranslateTransition(Duration.millis(55), tf);
-        shake.setByX(8);
-        shake.setCycleCount(6);
-        shake.setAutoReverse(true);
-        shake.setOnFinished(e -> tf.setTranslateX(0));
-        shake.play();
-    }
-
-    /**
-     * Plays a small scale pulse on a cell to visually reinforce
-     * a correct answer or a placed hint.
-     *
-     * @param tf text field of the cell to highlight.
-     */
-    private void pulseCell(TextField tf) {
-        ScaleTransition pulse = new ScaleTransition(Duration.millis(130), tf);
-        pulse.setFromX(1.0);
-        pulse.setFromY(1.0);
-        pulse.setToX(1.15);
-        pulse.setToY(1.15);
-        pulse.setCycleCount(2);
-        pulse.setAutoReverse(true);
-        pulse.play();
-    }
-
-    /**
-     * Clears the content of the selected cell if it is modifiable.
+     * Borra el contenido de la celda seleccionada si esta es modificable.
      */
     private void clearSelected() {
         if (selectedRow < 0 || selectedCol < 0) {
@@ -388,16 +290,15 @@ public class SudokuController implements SudokuModelAdapter {
         board.clearValue(selectedRow, selectedCol);
         refreshCell(selectedRow, selectedCol);
         updateStatus();
-        clearFeedback();
     }
 
     // -----------------------------------------------------------------
-    // Implementation of the SudokuModelAdapter interface
+    // Implementacion de la interfaz SudokuModelAdapter
     // -----------------------------------------------------------------
 
     /**
      * {@inheritDoc}
-     * Shows a confirmation dialog before restarting the game.
+     * Muestra un dialogo de confirmacion antes de reiniciar el juego.
      */
     @Override
     public void requestRestart() {
@@ -411,14 +312,13 @@ public class SudokuController implements SudokuModelAdapter {
             selectedRow = -1;
             selectedCol = -1;
             refreshAll();
-            clearFeedback();
         }
     }
 
     /**
      * {@inheritDoc}
-     * Fills an empty cell with a valid value from the solution.
-     * Disabled when only one cell is left to complete.
+     * Rellena una celda vacia con el valor correcto de la solucion.
+     * Se desactiva cuando solo queda una celda por completar.
      */
     @Override
     public void requestHelp() {
@@ -433,8 +333,6 @@ public class SudokuController implements SudokuModelAdapter {
         refreshCell(pos[0], pos[1]);
         selectCell(pos[0], pos[1]);
         updateStatus();
-        showFeedback("Pista colocada en la celda seleccionada.", "feedback-info");
-        pulseCell(cells[pos[0]][pos[1]]);
         if (board.isSolved()) {
             showInfo("Victoria", "Has completado el sudoku.");
         }
@@ -442,12 +340,9 @@ public class SudokuController implements SudokuModelAdapter {
 
     /**
      * {@inheritDoc}
-     * Places a number in the indicated cell. If the number is already
-     * used in the same row, column, or block, the action is rejected,
-     * the user is informed with a red message, and the cell is
-     * shaken to make clear where the error occurred. If the number is
-     * valid, the message switches to a green tone and the cell pulses
-     * briefly to confirm the correct move.
+     * Coloca un numero en la celda indicada. Si el numero ya esta
+     * usado en la misma fila, columna o bloque, la accion se rechaza
+     * y se informa al usuario.
      */
     @Override
     public void requestNumber(int row, int col, int number) {
@@ -459,25 +354,23 @@ public class SudokuController implements SudokuModelAdapter {
             return;
         }
         if (board.isNumberUsed(row, col, number)) {
-            showFeedback("El " + number + " ya esta en esa fila, columna o bloque.", "feedback-error");
-            shakeCell(cells[row][col]);
+            statusLabel.setText("El numero " + number
+                    + " ya esta en la fila, columna o bloque.");
             return;
         }
         board.setValue(row, col, number);
         refreshCell(row, col);
         updateStatus();
-        showFeedback("Bien! " + number + " colocado correctamente.", "feedback-success");
-        pulseCell(cells[row][col]);
         if (board.isSolved()) {
             showInfo("Victoria", "Has completado el sudoku.");
         }
     }
 
     /**
-     * Shows a simple informational dialog.
+     * Muestra un dialogo informativo simple.
      *
-     * @param title dialog title.
-     * @param message message to display.
+     * @param title titulo del dialogo.
+     * @param message mensaje a mostrar.
      */
     private void showInfo(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);

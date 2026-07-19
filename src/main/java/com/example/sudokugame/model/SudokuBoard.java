@@ -1,46 +1,51 @@
-package com.example.sudokugame;
+package com.example.sudokugame.model;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
 /**
- * Modelo principal del Sudoku 6x6.
- * Contiene la cuadricula, las reglas de validacion, el generador
- * de tableros validos y el resolvedor (backtracking) necesario
- * para la funcion de ayuda.
+ * Main model of the 6x6 Sudoku.
+ * Contains the grid, validation rules, the valid-board generator,
+ * and the solver (backtracking) needed for the help feature.
  *
- * El tablero se divide en bloques de 2 filas por 3 columnas,
- * cada bloque debe contener los numeros del 1 al 6 sin repetir.
+ * The board is divided into blocks of 2 rows by 3 columns,
+ * each block must contain the numbers 1 to 6 without repeating.
  */
 public class SudokuBoard {
 
-    /** Tamanio del lado del tablero. */
+    /** Side length of the board. */
     public static final int SIZE = 6;
 
-    /** Numero de filas por bloque. */
+    /** Number of rows per block. */
     public static final int BOX_ROWS = 2;
 
-    /** Numero de columnas por bloque. */
+    /** Number of columns per block. */
     public static final int BOX_COLS = 3;
 
-    /** Numero de celdas fijas a colocar al iniciar. */
-    public static final int INITIAL_HINTS = 8;
+    /** Number of fixed hints placed in each 2x3 block at the start. */
+    public static final int HINTS_PER_BOX = 2;
 
-    /** Cuadricula de celdas. */
+    /** How many blocks wide and tall the board has (2 x 3 = 6 blocks total). */
+    private static final int BOXES_PER_ROW = SIZE / BOX_COLS;
+    private static final int BOXES_PER_COL = SIZE / BOX_ROWS;
+
+    /** Total number of fixed cells at the start: 2 for each of the 6 blocks = 12. */
+    public static final int INITIAL_HINTS = HINTS_PER_BOX * BOXES_PER_ROW * BOXES_PER_COL;
+
+    /** Grid of cells. */
     private final Cell[][] grid;
 
-    /** Solucion completa del tablero, usada para validar y ayudar. */
+    /** A complete valid solution of the board. Used to give fixed hints and help. */
     private int[][] solution;
 
-    /** Generador de numeros aleatorios. */
+    /** Random number generator. */
     private final Random random;
 
     /**
-     * Construye un tablero vacio. Se debe llamar a {@link #newGame()}
-     * para inicializar un nuevo juego.
+     * Builds an empty board. {@link #newGame()} must be called
+     * to initialize a new game.
      */
     public SudokuBoard() {
         this.grid = new Cell[SIZE][SIZE];
@@ -54,80 +59,53 @@ public class SudokuBoard {
     }
 
     /**
-     * Genera un nuevo juego: primero construye una solucion valida
-     * y luego coloca exactamente 2 pistas en posiciones aleatorias,
-     * verificando que el tablero siga siendo resoluble.
+     * Generates a new game: builds a complete valid solution and
+     * places {@link #HINTS_PER_BOX} randomly chosen fixed hints within
+     * each of the 6 2x3 blocks ({@link #INITIAL_HINTS} in total).
      */
     public void newGame() {
-        int attempts = 0;
-        while (attempts < 50) {
-            generateFullSolution();
-            if (tryPlaceHints(INITIAL_HINTS)) {
-                return;
-            }
-            attempts++;
-        }
         generateFullSolution();
-        forcePlaceHints(INITIAL_HINTS);
+        placeHints();
     }
 
     /**
-     * Intenta colocar la cantidad indicada de pistas verificando que
-     * el tablero resultante tenga solucion unica.
-     *
-     * @param count numero de pistas deseadas.
-     * @return true si se pudieron colocar todas.
+     * Places {@link #HINTS_PER_BOX} random hints in each 2x3 block.
+     * Since each block has 6 cells and only 2 are requested, it is
+     * always possible to place them: no retry is needed.
+     * <p>
+     * It is not required that the resulting board have a unique solution:
+     * with so few hints (12 of 36 cells) it almost never does. That is why
+     * {@link #isSolved()} validates generic compliance with the sudoku
+     * rules instead of comparing cell by cell against {@link #solution},
+     * so that any valid completion by the player counts as a win,
+     * whether or not it matches the solution generated here.
      */
-    private boolean tryPlaceHints(int count) {
+    private void placeHints() {
         clearBoard();
-        List<int[]> positions = new ArrayList<>();
-        for (int r = 0; r < SIZE; r++) {
-            for (int c = 0; c < SIZE; c++) {
-                positions.add(new int[]{r, c});
-            }
-        }
-        Collections.shuffle(positions, random);
-        int placed = 0;
-        for (int[] pos : positions) {
-            if (placed >= count) {
-                return true;
-            }
-            int r = pos[0];
-            int c = pos[1];
-            grid[r][c] = new Cell(solution[r][c], true);
-            if (!hasUniqueSolution()) {
-                grid[r][c] = new Cell(0, false);
-            } else {
-                placed++;
-            }
-        }
-        // No se alcanzaron a colocar suficientes pistas, limpia el tablero.
-        clearBoard();
-        return false;
-    }
+        for (int boxRow = 0; boxRow < BOXES_PER_COL; boxRow++) {
+            for (int boxCol = 0; boxCol < BOXES_PER_ROW; boxCol++) {
+                int rowStart = boxRow * BOX_ROWS;
+                int colStart = boxCol * BOX_COLS;
 
-    /**
-     * Coloca pistas sin verificar unicidad. Se usa como red de seguridad.
-     *
-     * @param count numero de pistas a colocar.
-     */
-    private void forcePlaceHints(int count) {
-        clearBoard();
-        List<int[]> positions = new ArrayList<>();
-        for (int r = 0; r < SIZE; r++) {
-            for (int c = 0; c < SIZE; c++) {
-                positions.add(new int[]{r, c});
+                List<int[]> boxPositions = new ArrayList<>();
+                for (int r = rowStart; r < rowStart + BOX_ROWS; r++) {
+                    for (int c = colStart; c < colStart + BOX_COLS; c++) {
+                        boxPositions.add(new int[]{r, c});
+                    }
+                }
+                Collections.shuffle(boxPositions, random);
+
+                for (int i = 0; i < HINTS_PER_BOX; i++) {
+                    int r = boxPositions.get(i)[0];
+                    int c = boxPositions.get(i)[1];
+                    grid[r][c] = new Cell(solution[r][c], true);
+                }
             }
-        }
-        Collections.shuffle(positions, random);
-        for (int i = 0; i < count && i < positions.size(); i++) {
-            int[] pos = positions.get(i);
-            grid[pos[0]][pos[1]] = new Cell(solution[pos[0]][pos[1]], true);
         }
     }
 
     /**
-     * Limpia el tablero dejando todas las celdas vacias y no fijas.
+     * Clears the board, leaving all cells empty and non-fixed.
      */
     private void clearBoard() {
         for (int r = 0; r < SIZE; r++) {
@@ -138,70 +116,8 @@ public class SudokuBoard {
     }
 
     /**
-     * Verifica que el tablero actual (con celdas fijas) tenga
-     * una unica solucion. Se usa antes de mostrar el juego.
-     *
-     * @return true si existe una sola solucion.
-     */
-    private boolean hasUniqueSolution() {
-        int[][] copy = snapshotNonFixed();
-        int[] count = new int[]{0};
-        solveUnique(copy, count, 2);
-        return count[0] == 1;
-    }
-
-    /**
-     * Construye una copia del tablero donde las celdas no fijas se
-     * representan con 0. Se usa para resolver y verificar unicidad.
-     *
-     * @return copia del tablero.
-     */
-    private int[][] snapshotNonFixed() {
-        int[][] copy = new int[SIZE][SIZE];
-        for (int r = 0; r < SIZE; r++) {
-            for (int c = 0; c < SIZE; c++) {
-                copy[r][c] = grid[r][c].getValue();
-            }
-        }
-        return copy;
-    }
-
-    /**
-     * Busca hasta {@code limit} soluciones en el tablero recibido.
-     * Implementa backtracking clasico.
-     *
-     * @param board tablero a resolver (0 representa vacio).
-     * @param count arreglo de un entero usado como contador mutable.
-     * @param limit numero maximo de soluciones a buscar.
-     * @return true si se alcanzo el limite de soluciones.
-     */
-    private boolean solveUnique(int[][] board, int[] count, int limit) {
-        if (count[0] >= limit) {
-            return true;
-        }
-        for (int r = 0; r < SIZE; r++) {
-            for (int c = 0; c < SIZE; c++) {
-                if (board[r][c] == 0) {
-                    for (int n = 1; n <= SIZE; n++) {
-                        if (isValidPlacement(board, r, c, n)) {
-                            board[r][c] = n;
-                            if (solveUnique(board, count, limit)) {
-                                return true;
-                            }
-                            board[r][c] = 0;
-                        }
-                    }
-                    return false;
-                }
-            }
-        }
-        count[0]++;
-        return count[0] >= limit;
-    }
-
-    /**
-     * Genera una solucion completa valida para un tablero 6x6
-     * con bloques 2x3.
+     * Generates a complete valid solution for a 6x6 board
+     * with 2x3 blocks.
      */
     private void generateFullSolution() {
         solution = new int[SIZE][SIZE];
@@ -209,12 +125,12 @@ public class SudokuBoard {
     }
 
     /**
-     * Rellena recursivamente la matriz {@link #solution} por filas
-     * usando backtracking con orden aleatorio para variar las soluciones.
+     * Recursively fills the {@link #solution} matrix by rows
+     * using backtracking with random order to vary the solutions.
      *
-     * @param row fila actual.
-     * @param col columna actual.
-     * @return true si logro completar la solucion.
+     * @param row current row.
+     * @param col current column.
+     * @return true if it managed to complete the solution.
      */
     private boolean fillSolution(int row, int col) {
         if (row == SIZE) {
@@ -242,14 +158,14 @@ public class SudokuBoard {
     }
 
     /**
-     * Verifica si un numero puede colocarse en una posicion respetando
-     * las reglas de fila, columna y bloque 2x3.
+     * Checks whether a number can be placed at a position while
+     * respecting the row, column, and 2x3 block rules.
      *
-     * @param board tablero a evaluar.
-     * @param row fila destino.
-     * @param col columna destino.
-     * @param number numero a colocar.
-     * @return true si la colocacion es valida.
+     * @param board board to evaluate.
+     * @param row target row.
+     * @param col target column.
+     * @param number number to place.
+     * @return true if the placement is valid.
      */
     private boolean isValidPlacement(int[][] board, int row, int col, int number) {
         for (int i = 0; i < SIZE; i++) {
@@ -273,46 +189,50 @@ public class SudokuBoard {
     }
 
     /**
-     * Devuelve la celda en la posicion indicada.
+     * Returns the cell at the indicated position.
      *
-     * @param row fila.
-     * @param col columna.
-     * @return la celda correspondiente.
+     * @param row row.
+     * @param col column.
+     * @return the corresponding cell.
      */
     public Cell getCell(int row, int col) {
         return grid[row][col];
     }
 
     /**
-     * Obtiene el valor almacenado en una celda.
+     * Gets the value stored in a cell.
      *
-     * @param row fila.
-     * @param col columna.
-     * @return valor actual (0 si esta vacia).
+     * @param row row.
+     * @param col column.
+     * @return current value (0 if empty).
      */
     public int getValue(int row, int col) {
         return grid[row][col].getValue();
     }
 
     /**
-     * Obtiene el valor correcto (segun la solucion) para una celda.
+     * Gets the value of the internally generated solution for a cell.
+     * It is only one of the possible valid solutions; useful for hints
+     * and help, but not used to decide whether the player won.
      *
-     * @param row fila.
-     * @param col columna.
-     * @return valor correcto.
+     * @param row row.
+     * @param col column.
+     * @return value of that reference solution.
      */
     public int getSolutionValue(int row, int col) {
         return solution[row][col];
     }
 
     /**
-     * Coloca un valor en una celda modificable, solo si no esta repetido
-     * en su fila, columna o bloque 2x3 respecto a las demas celdas.
+     * Places a value in a modifiable cell, only if it is not repeated
+     * in its row, column, or 2x3 block relative to the other cells.
+     * Accepts any number from 1 to 6 that respects the sudoku rules:
+     * it does not require it to match the internally generated solution.
      *
-     * @param row fila.
-     * @param col columna.
-     * @param number numero a colocar.
-     * @return true si se coloco correctamente.
+     * @param row row.
+     * @param col column.
+     * @param number number to place.
+     * @return true if it was placed successfully.
      */
     public boolean setValue(int row, int col, int number) {
         if (row < 0 || row >= SIZE || col < 0 || col >= SIZE) {
@@ -330,13 +250,14 @@ public class SudokuBoard {
     }
 
     /**
-     * Indica si un numero ya esta siendo usado por otra celda en la
-     * misma fila, columna o bloque 2x3. No considera la propia celda.
+     * Indicates whether a number is already being used by another cell
+     * in the same row, column, or 2x3 block. Does not consider the
+     * cell itself.
      *
-     * @param row fila de la celda destino.
-     * @param col columna de la celda destino.
-     * @param number numero a verificar.
-     * @return true si el numero ya esta ocupado.
+     * @param row row of the target cell.
+     * @param col column of the target cell.
+     * @param number number to check.
+     * @return true if the number is already taken.
      */
     public boolean isNumberUsed(int row, int col, int number) {
         for (int i = 0; i < SIZE; i++) {
@@ -360,10 +281,10 @@ public class SudokuBoard {
     }
 
     /**
-     * Borra el contenido de una celda modificable.
+     * Clears the content of a modifiable cell.
      *
-     * @param row fila.
-     * @param col columna.
+     * @param row row.
+     * @param col column.
      */
     public void clearValue(int row, int col) {
         if (row < 0 || row >= SIZE || col < 0 || col >= SIZE) {
@@ -376,11 +297,14 @@ public class SudokuBoard {
     }
 
     /**
-     * Indica si el valor actual de la celda coincide con la solucion.
+     * Indicates whether the current value of the cell matches the
+     * internally generated solution. Kept only as a reference; NOT
+     * used to decide victory (see {@link #isSolved()}), because with
+     * only 12 hints there may be more than one valid completion.
      *
-     * @param row fila.
-     * @param col columna.
-     * @return true si coincide, false en caso contrario o si esta vacia.
+     * @param row row.
+     * @param col column.
+     * @return true if it matches, false otherwise or if it is empty.
      */
     public boolean isCorrect(int row, int col) {
         if (grid[row][col].isEmpty()) {
@@ -390,14 +314,36 @@ public class SudokuBoard {
     }
 
     /**
-     * Indica si el tablero esta completamente lleno y correcto.
+     * Indicates whether the board is complete and is a valid sudoku
+     * solution: each row, column, and 2x3 block contains the numbers
+     * 1 to 6 without repeating. Validated generically instead of
+     * comparing against the internally generated solution, so that
+     * any correct completion by the player counts as a win.
      *
-     * @return true si el jugador ha ganado.
+     * @return true if the player has won.
      */
     public boolean isSolved() {
         for (int r = 0; r < SIZE; r++) {
             for (int c = 0; c < SIZE; c++) {
-                if (grid[r][c].isEmpty() || grid[r][c].getValue() != solution[r][c]) {
+                if (grid[r][c].isEmpty()) {
+                    return false;
+                }
+            }
+        }
+        for (int r = 0; r < SIZE; r++) {
+            if (!isGroupValid(rowValues(r))) {
+                return false;
+            }
+        }
+        for (int c = 0; c < SIZE; c++) {
+            if (!isGroupValid(colValues(c))) {
+                return false;
+            }
+        }
+        for (int boxRow = 0; boxRow < BOXES_PER_COL; boxRow++) {
+            for (int boxCol = 0; boxCol < BOXES_PER_ROW; boxCol++) {
+                int[] values = boxValues(boxRow * BOX_ROWS, boxCol * BOX_COLS);
+                if (!isGroupValid(values)) {
                     return false;
                 }
             }
@@ -405,11 +351,54 @@ public class SudokuBoard {
         return true;
     }
 
+    private int[] rowValues(int row) {
+        int[] values = new int[SIZE];
+        for (int c = 0; c < SIZE; c++) {
+            values[c] = grid[row][c].getValue();
+        }
+        return values;
+    }
+
+    private int[] colValues(int col) {
+        int[] values = new int[SIZE];
+        for (int r = 0; r < SIZE; r++) {
+            values[r] = grid[r][col].getValue();
+        }
+        return values;
+    }
+
+    private int[] boxValues(int rowStart, int colStart) {
+        int[] values = new int[SIZE];
+        int i = 0;
+        for (int r = rowStart; r < rowStart + BOX_ROWS; r++) {
+            for (int c = colStart; c < colStart + BOX_COLS; c++) {
+                values[i++] = grid[r][c].getValue();
+            }
+        }
+        return values;
+    }
+
     /**
-     * Cuenta cuantas celdas vacias quedan. Utilizado para saber si la
-     * ayuda debe desactivarse cuando solo queda una por llenar.
+     * Checks that a group of {@link #SIZE} values contains each
+     * number from 1 to 6 exactly once.
+     */
+    private boolean isGroupValid(int[] values) {
+        boolean[] seen = new boolean[SIZE + 1];
+        for (int v : values) {
+            if (v < 1 || v > SIZE || seen[v]) {
+                return false;
+            }
+            seen[v] = true;
+        }
+        return true;
+    }
+
+    /**
+     * Counts how many empty cells remain. Used to determine whether
+     * the help feature should be disabled when only one cell is left
+     * to fill.
      *
-     * @return numero de celdas vacias.
+     * @return number of empty cells.
      */
     public int countEmpty() {
         int count = 0;
@@ -424,19 +413,18 @@ public class SudokuBoard {
     }
 
     /**
-     * Busca una celda vacia que pueda rellenarse con un valor que
-     * mantenga el tablero resoluble (que conduzca a la victoria).
-     * El valor colocado debe coincidir con la solucion para que el
-     * tablero pueda completarse.
+     * Looks for an empty cell that can still be filled with at least
+     * one valid number according to the current state of the board
+     * (not just the internally generated solution).
      *
-     * @return coordenadas de la celda a rellenar o null si no hay
-     *         celdas candidatas.
+     * @return coordinates of the cell to fill, or null if there are
+     *         no candidate cells.
      */
     public int[] pickHelpCell() {
         List<int[]> candidates = new ArrayList<>();
         for (int r = 0; r < SIZE; r++) {
             for (int c = 0; c < SIZE; c++) {
-                if (grid[r][c].isEmpty()) {
+                if (grid[r][c].isEmpty() && findAnyValidNumber(r, c) != 0) {
                     candidates.add(new int[]{r, c});
                 }
             }
@@ -449,25 +437,52 @@ public class SudokuBoard {
     }
 
     /**
-     * Rellena la celda indicada con su valor correcto de la solucion.
+     * Fills the indicated cell with a valid value: preferably the one
+     * from the internally generated solution, or if that one already
+     * conflicts with the user's previous moves (because they followed
+     * an equally valid but different path), any other number that
+     * respects the rules for that cell.
      *
-     * @param row fila.
-     * @param col columna.
+     * @param row row.
+     * @param col column.
      */
     public void applyHelp(int row, int col) {
         if (grid[row][col].isFixed() || !grid[row][col].isEmpty()) {
             return;
         }
-        grid[row][col].setValue(solution[row][col]);
+        int candidate = solution[row][col];
+        if (isNumberUsed(row, col, candidate)) {
+            candidate = findAnyValidNumber(row, col);
+        }
+        if (candidate != 0) {
+            grid[row][col].setValue(candidate);
+        }
     }
 
     /**
-     * Verifica que la colocacion actual respete las reglas del sudoku.
-     * Se usa para detectar y resaltar errores.
+     * Looks for any number from 1 to 6 that can be placed in the
+     * indicated cell without violating the row, column, or block rules.
      *
-     * @param row fila.
-     * @param col columna.
-     * @return true si el valor actual viola alguna regla.
+     * @param row row.
+     * @param col column.
+     * @return a valid number, or 0 if none is valid.
+     */
+    private int findAnyValidNumber(int row, int col) {
+        for (int n = 1; n <= SIZE; n++) {
+            if (!isNumberUsed(row, col, n)) {
+                return n;
+            }
+        }
+        return 0;
+    }
+
+    /**
+     * Checks whether the current placement respects the sudoku rules.
+     * Used to detect and highlight errors.
+     *
+     * @param row row.
+     * @param col column.
+     * @return true if the current value violates any rule.
      */
     public boolean hasConflict(int row, int col) {
         int value = grid[row][col].getValue();
@@ -495,10 +510,10 @@ public class SudokuBoard {
     }
 
     /**
-     * Devuelve una representacion en texto del tablero, util para
-     * depuracion.
+     * Returns a text representation of the board, useful for
+     * debugging.
      *
-     * @return cadena con el contenido del tablero.
+     * @return string with the board's contents.
      */
     @Override
     public String toString() {

@@ -10,28 +10,28 @@ import java.io.IOException;
 import java.util.Objects;
 
 /**
- * Punto de entrada de la aplicacion JavaFX.
- * Carga la vista definida en {@code sudoku-view.fxml} y aplica
- * la hoja de estilos {@code sudoku.css}.
+ * Entry point of the JavaFX application.
+ * Loads the view defined in {@code sudoku-view.fxml} and applies
+ * the {@code sudoku.css} stylesheet.
  */
-public class HelloApplication extends Application {
+public class Main extends Application {
 
     /**
-     * Inicia la ventana principal de la aplicacion.
+     * Starts the application's main window.
      *
-     * @param stage escenario principal de JavaFX.
-     * @throws IOException si no se puede cargar el archivo FXML.
+     * @param stage the main JavaFX stage.
+     * @throws IOException if the FXML file cannot be loaded.
      */
     @Override
     public void start(Stage stage) throws IOException {
         FXMLLoader loader = new FXMLLoader(
-                Objects.requireNonNull(HelloApplication.class.getResource("sudoku-view.fxml")));
+                Objects.requireNonNull(Main.class.getResource("view/sudoku-view.fxml")));
         Parent root = loader.load();
         Scene scene = new Scene(root);
         scene.getStylesheets().add(
-                Objects.requireNonNull(HelloApplication.class.getResource("sudoku.css"))
+                Objects.requireNonNull(Main.class.getResource("view/sudoku.css"))
                         .toExternalForm());
-        stage.setTitle("Sudoku 6x6");
+        stage.setTitle("SudokuGame");
         stage.setScene(scene);
         stage.setResizable(false);
         stage.show();
