@@ -1,25 +1,148 @@
+/* ============================================================
+   Sudoku 6x6 - Tema pastel
+   Paleta: lavanda suave (#5B4B8A / #C9DFFA), durazno (#FFE7BF),
+   rosa (#FBD4DC) y menta (#C8F0DC) sobre fondo crema-celeste.
+   ============================================================ */
+
+.root-pane {
+    -fx-background-color: linear-gradient(to bottom right, #FDF3F8, #EAF3FB);
+}
+
+/* ---------- Encabezado ---------- */
+
+.header-box {
+    -fx-background-color: rgba(255, 255, 255, 0.55);
+    -fx-background-radius: 0 0 26 26;
+    -fx-effect: dropshadow(gaussian, rgba(120, 110, 160, 0.28), 14, 0.15, 0, 4);
+}
+
+.title-label {
+    -fx-font-family: "Segoe UI Semibold", "Verdana", sans-serif;
+    -fx-font-size: 26px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #5B4B8A;
+}
+
+.status-label {
+    -fx-font-family: "Segoe UI", "Verdana", sans-serif;
+    -fx-font-size: 14px;
+    -fx-text-fill: #6B7A99;
+}
+
+/* Mensaje de retroalimentacion: cambia de color segun el resultado */
+.feedback-label {
+    -fx-font-family: "Segoe UI Semibold", "Verdana", sans-serif;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-padding: 5 14 5 14;
+    -fx-background-radius: 14;
+    -fx-background-color: transparent;
+    -fx-text-fill: transparent;
+}
+
+.feedback-label.feedback-error {
+    -fx-text-fill: #C0392B;
+    -fx-background-color: rgba(255, 190, 190, 0.65);
+}
+
+.feedback-label.feedback-success {
+    -fx-text-fill: #2E7D5B;
+    -fx-background-color: rgba(190, 235, 210, 0.7);
+}
+
+.feedback-label.feedback-info {
+    -fx-text-fill: #3A5A9B;
+    -fx-background-color: rgba(200, 220, 250, 0.7);
+}
+
+/* ---------- Tablero: efecto de vidrio esmerilado (frosted glass) ---------- */
+
+.board-frame {
+    -fx-background-color: rgba(255, 255, 255, 0.55);
+    -fx-background-radius: 30;
+    -fx-border-radius: 30;
+    -fx-border-color: rgba(255, 255, 255, 0.85);
+    -fx-border-width: 1.5;
+    -fx-padding: 20;
+    -fx-effect: dropshadow(gaussian, rgba(120, 110, 160, 0.35), 26, 0.25, 0, 12);
+}
+
+/* ---------- Celdas ---------- */
+
 .sudoku-cell {
     -fx-background-color: white;
-    -fx-border-color: #888;
-    -fx-border-width: 0.5;
-    -fx-text-fill: black;
+    -fx-background-radius: 12;
+    -fx-border-radius: 12;
+    -fx-border-color: #D9D3EE;
+    -fx-border-width: 1;
+    -fx-background-insets: 2.5;
+    -fx-border-insets: 2.5;
+    -fx-text-fill: #3D3D5C;
+    -fx-font-family: "Verdana", sans-serif;
+    -fx-font-weight: bold;
+    -fx-effect: dropshadow(gaussian, rgba(150, 150, 180, 0.18), 3, 0, 0, 1);
+}
+
+.sudoku-cell:hover {
+    -fx-background-color: #F6F2FD;
 }
 
 .sudoku-cell.fixed {
-    -fx-background-color: #e0e0e0;
+    -fx-background-color: #ECE7F6;
+    -fx-text-fill: #5B4B8A;
     -fx-font-weight: bold;
 }
 
 .sudoku-cell.user {
-    -fx-text-fill: #1a4fbf;
+    -fx-text-fill: #2C5F9E;
 }
 
+/* Casilla con numero invalido: fondo y borde rojo suave */
 .sudoku-cell.error {
-    -fx-text-fill: #c00000;
-    -fx-background-color: #ffd6d6;
+    -fx-text-fill: #C0392B;
+    -fx-background-color: #FFE1E1;
+    -fx-border-color: #F2A6A6;
+    -fx-border-width: 2;
 }
 
 .sudoku-cell.selected {
-    -fx-border-color: #1a73e8;
-    -fx-border-width: 2;
+    -fx-border-color: #7FA6E8;
+    -fx-border-width: 2.5;
+    -fx-background-color: #EAF1FF;
+    -fx-effect: dropshadow(gaussian, rgba(127, 166, 232, 0.55), 10, 0.35, 0, 0);
 }
+
+/* ---------- Botones ---------- */
+
+.action-button {
+    -fx-font-family: "Segoe UI Semibold", "Verdana", sans-serif;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-background-radius: 22;
+    -fx-border-radius: 22;
+    -fx-padding: 10 18 10 18;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(120, 110, 160, 0.28), 7, 0.15, 0, 3);
+}
+
+.primary-button {
+    -fx-background-color: #C9DFFA;
+    -fx-text-fill: #29497A;
+}
+.primary-button:hover  { -fx-background-color: #B2CFF5; }
+.primary-button:pressed { -fx-background-color: #9EC0EE; }
+
+.help-button {
+    -fx-background-color: #FFE7BF;
+    -fx-text-fill: #8A5A00;
+}
+.help-button:hover  { -fx-background-color: #FFDA9E; }
+.help-button:pressed { -fx-background-color: #FFCC7A; }
+.help-button:disabled { -fx-opacity: 0.5; }
+
+.clear-button {
+    -fx-background-color: #FBD4DC;
+    -fx-text-fill: #8A2E45;
+}
+.clear-button:hover  { -fx-background-color: #F7BEC9; }
+.clear-button:pressed { -fx-background-color: #F1A3B3; }
