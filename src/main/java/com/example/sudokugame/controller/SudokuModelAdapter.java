@@ -1,29 +1,29 @@
-package com.example.sudokugame;
-
+package com.example.sudokugame.controller;
+ 
 /**
- * Contrato que un adaptador entre el modelo de Sudoku y la vista debe cumplir.
- * Permite desacoplar la capa de presentacion de la capa de modelo,
- * cumpliendo con el patron MVC y la separacion de responsabilidades.
+ * Contract that an adapter between the Sudoku model and the view must fulfill.
+ * Allows decoupling the presentation layer from the model layer,
+ * following the MVC pattern and separation of concerns.
  */
 public interface SudokuModelAdapter {
-
+ 
     /**
-     * Solicita el reinicio del juego. Puede mostrar una confirmacion
-     * antes de proceder.
+     * Requests a restart of the game. May show a confirmation
+     * before proceeding.
      */
     void requestRestart();
-
+ 
     /**
-     * Solicita la ayuda del sistema. Rellena una celda aleatoria valida.
+     * Requests help from the system. Fills a random valid cell.
      */
     void requestHelp();
-
+ 
     /**
-     * Solicita la escritura de un numero en una celda especifica.
+     * Requests that a number be written into a specific cell.
      *
-     * @param row fila de la celda.
-     * @param col columna de la celda.
-     * @param number numero a escribir (1 a 6).
+     * @param row row of the cell.
+     * @param col column of the cell.
+     * @param number number to write (1 to 6).
      */
     void requestNumber(int row, int col, int number);
 }
