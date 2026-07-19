@@ -1,5 +1,7 @@
-package com.example.sudokugame;
+package com.example.sudokugame.controller;
 
+import com.example.sudokugame.model.Cell;
+import com.example.sudokugame.model.SudokuBoard;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;

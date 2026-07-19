@@ -14,7 +14,7 @@ import java.util.Objects;
  * Carga la vista definida en {@code sudoku-view.fxml} y aplica
  * la hoja de estilos {@code sudoku.css}.
  */
-public class HelloApplication extends Application {
+public class Main extends Application {
 
     /**
      * Inicia la ventana principal de la aplicacion.
@@ -25,11 +25,11 @@ public class HelloApplication extends Application {
     @Override
     public void start(Stage stage) throws IOException {
         FXMLLoader loader = new FXMLLoader(
-                Objects.requireNonNull(HelloApplication.class.getResource("sudoku-view.fxml")));
+                Objects.requireNonNull(Main.class.getResource("sudoku-view.fxml")));
         Parent root = loader.load();
         Scene scene = new Scene(root);
         scene.getStylesheets().add(
-                Objects.requireNonNull(HelloApplication.class.getResource("sudoku.css"))
+                Objects.requireNonNull(Main.class.getResource("sudoku.css"))
                         .toExternalForm());
         stage.setTitle("Sudoku 6x6");
         stage.setScene(scene);

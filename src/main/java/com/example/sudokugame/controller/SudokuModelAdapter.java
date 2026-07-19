@@ -1,4 +1,4 @@
-package com.example.sudokugame;
+package com.example.sudokugame.controller;
 
 /**
  * Contrato que un adaptador entre el modelo de Sudoku y la vista debe cumplir.

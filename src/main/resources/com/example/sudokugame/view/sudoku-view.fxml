@@ -10,7 +10,7 @@
 <?import javafx.scene.layout.VBox?>
 
 <BorderPane xmlns:fx="http://javafx.com/fxml"
-            fx:controller="com.example.sudokugame.SudokuController"
+            fx:controller="com.example.sudokugame.controller.SudokuController"
             prefWidth="420" prefHeight="540">
     <top>
         <VBox alignment="CENTER" spacing="5">

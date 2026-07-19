@@ -1,4 +1,4 @@
-package com.example.sudokugame;
+package com.example.sudokugame.model;
 
 /**
  * Representa una celda individual del tablero de Sudoku 6x6.
